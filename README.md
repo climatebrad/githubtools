@@ -3,9 +3,17 @@ Toolkit for manipulating local and Github repositories. Including the process of
 
 Built for Flatiron Data Science class after Learn.co removed their automatic forking functionality.
 
-Command-line call doesn't run any statements, just sets the config.
+
 
 ## Usage:
+Command-line call doesn't run any statements, just sets the config:
+~~~~
+githubtools.py [(-v|--verbose) -n <max> --test --dir=<dir>]
+githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
+githubtools.py (-h|--help)
+~~~~
+
+Using the module:
 ~~~~
 from githubtools install *
 
@@ -31,9 +39,6 @@ upstream_remotes = add_upstream_repos(g,cloned_repos,arguments)
 -h --help             show this screen.
 -v --verbose          verbose mode
 -n <max>              specify <max> limit of matching repositories
---fork                fork matching repositories
---clone               clone matching forked repositories, if they exist
---upstream            add remote upstream to cloned repos, if they exist
 --test                test mode (no write)
 --dir=<dir>           specify <dir> to clone repositories [default: ./]
 -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
