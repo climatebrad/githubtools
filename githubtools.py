@@ -197,9 +197,10 @@ def add_upstream_repos(g,cloned_repos,config):
 		if config['--test'] or config['--verbose']:
 			print(f"{msg_prefix}Adding upstream remote {forked_repo.parent.git_url}...")
 		if not config['--test']:
-			if 'upstream' in cloned_repo.remotes:
-				upstream_remotes.append(cloned_repo.remotes["upstream"])
-			else:
+			try:
+				remote_upstream = cloned_repo.remotes['upstream']
+				upstream_remotes.append(remote_upstream)
+			except:
 				upstream_remotes.append(cloned_repo.remotes.create("upstream",forked_repo.parent.git_url))
 		if config['--verbose']:
 			print(f"Done.")
