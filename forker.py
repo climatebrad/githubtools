@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Usage:
   forker.py [(-v|--verbose) -n <max> --test  --fork --clone --dir=<dir> --upstream] KEYWORD
   forker.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] KEYWORD

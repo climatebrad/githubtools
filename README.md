@@ -3,8 +3,6 @@ Toolkit for manipulating local and Github repositories. Including the process of
 
 Built for Flatiron Data Science class after Learn.co removed their automatic forking functionality.
 
-
-
 ## Usage:
 Command-line call doesn't run any statements, just sets the config:
 ~~~~

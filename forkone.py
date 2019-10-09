@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Usage:
   forkone.py [(-v|--verbose) --test  --fork --clone --dir=<dir> --upstream] REPO
   forkone.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] REPO

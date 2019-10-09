@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Usage:
   githubtools.py [(-v|--verbose) -n <max> --test --dir=<dir>]
   githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
