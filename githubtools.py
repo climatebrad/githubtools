@@ -17,9 +17,10 @@ Options:
 """
 from docopt import docopt
 
-config = docopt(__doc__)
-if config['--test'] or config['--verbose']:
-	print(config)
+if __name__ == '__main__':
+	config = docopt(__doc__)
+	if config['--test'] or config['--verbose']:
+		print(config)
 
 import sys
 # get a list of the github repositories we need to fork
@@ -119,6 +120,8 @@ def fork_repos(g,repos,config):
 		if not config['--test']:
 			forked_repo = me.create_fork(repo)
 			forked_repos.append(forked_repo)
+		if config['--verbose']:
+			print(f"Done.")
 	return forked_repos
 
 # need to add a check that forked repo doesn't already exist (?)
@@ -140,7 +143,7 @@ def clone_repos(repos,config):
 		msg_prefix = "TEST: "
 	for repo in repos:
 		if config['--test'] or config['--verbose']:
-			print(f"{msg_prefix}Cloning {repo.url} into {working_dir}/{repo.name} ...")
+			print(f"{msg_prefix}Cloning {repo.git_url} into {working_dir}/{repo.name} ...")
 		if pygit2.discover_repository(working_dir):
 			sys.exit(f"A repository already exists in {working_dir}")
 		if pygit2.discover_repository(working_dir+"/"+repo.name):
@@ -149,9 +152,11 @@ def clone_repos(repos,config):
 			# note: should check if the repo that exists is actually a clone
 			cloned_repo = pygit2.Repository(pygit2.discover_repository(working_dir+"/"+repo.name))
 		elif not config['--test']:
-			cloned_repo = pygit2.clone_repository(repo.url,working_dir+"/"+repo.name)
+			cloned_repo = pygit2.clone_repository(repo.git_url,working_dir+"/"+repo.name)
 		if not config['--test']:
 			cloned_repos.append(cloned_repo)
+		if config['--verbose']:
+			print(f"Done.")
 	return cloned_repos
 
 def get_github_repo_from_url(g,url,config):
@@ -181,4 +186,6 @@ def add_upstream_repos(g,cloned_repos,config):
 				upstream_remotes.append(cloned_repo.remotes["upstream"])
 			else:
 				upstream_remotes.append(cloned_repo.remotes.create("upstream",forked_repo.parent.git_url))
+		if config['--verbose']:
+			print(f"Done.")
 	return upstream_remotes
