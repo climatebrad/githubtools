@@ -28,7 +28,6 @@ if __name__ == '__main__':
 	REPO = arguments['REPO']
 	TEST = arguments['--test']
 	VERBOSE = arguments['--verbose']
-	WORKING_DIR = arguments['--dir']
 	if TEST or VERBOSE:
 		print(arguments)
 
@@ -62,7 +61,7 @@ if arguments['--verbose']:
 time.sleep(3)
 
 if arguments['--clone']:
-	cloned_repo = clone_repos(forked_repo,WORKING_DIR,arguments)
+	cloned_repo = clone_repos(forked_repo,arguments)
 
 if arguments['--upstream']:
 	upstream_remote = add_upstream_repos(g,cloned_repo,arguments)

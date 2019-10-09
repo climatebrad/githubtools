@@ -30,7 +30,6 @@ if __name__ == '__main__':
 	KEYWORD = arguments['KEYWORD']
 	TEST = arguments['--test']
 	VERBOSE = arguments['--verbose']
-	WORKING_DIR = arguments['--dir']
 	if TEST or VERBOSE:
 		print(arguments)
 
@@ -55,7 +54,7 @@ if arguments['--verbose']:
 time.sleep(5)
 
 if arguments['--clone']:
-	cloned_repos = clone_repos(forked_repos,WORKING_DIR,arguments)
+	cloned_repos = clone_repos(forked_repos,arguments)
 
 # add upstream connection
 

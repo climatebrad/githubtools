@@ -1,5 +1,5 @@
 """Usage:
-  githubtools.py [(-v|--verbose) -n <max> --test  --fork --clone --dir=<dir> --upstream]
+  githubtools.py [(-v|--verbose) -n <max> --test --dir=<dir>]
   githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
   githubtools.py (-h|--help)
 
@@ -9,19 +9,16 @@ Options:
   -h --help             show this screen.
   -v --verbose          verbose mode
   -n <max>              specify <max> limit of matching repositories
-  --fork                fork matching repositories
-  --clone               clone matching forked repositories, if they exist
-  --upstream            add remote upstream to cloned repos, if they exist
   --test                test mode (no write)
   --dir=<dir>           specify <dir> to clone repositories [default: ./]
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 """
 from docopt import docopt
-if __name__ == '__main__':
-	config = docopt(__doc__)
-	if config['--test'] or config['--verbose']:
-		print(config)
+
+config = docopt(__doc__)
+if config['--test'] or config['--verbose']:
+	print(config)
 
 import sys
 # get a list of the github repositories we need to fork
@@ -133,9 +130,10 @@ def fork_repos(g,repos,config):
 # creates clones for given remote repos; returns clones that already exist
 
 # working_dir better not already be a git repository!!
-def clone_repos(repos,working_dir,config):
+def clone_repos(repos,config):
 	if type(repos) is not list: repos = [ repos ]
 	cloned_repos = []
+    working_dir = config['--dir']
 	msg_prefix = ''
 	if config['--test']:
 		msg_prefix = "TEST: "
