@@ -180,7 +180,7 @@ def get_github_repo_from_url(g,url,config):
 
 def add_upstream_repos(g,cloned_repos,config):
 # make sure cloned_repos is iterable
-	if not is_iterable(cloned_repos): cloned_repos = [cloned_repos]
+	if not _is_iterable(cloned_repos): cloned_repos = [cloned_repos]
 	upstream_remotes = []
 	msg_prefix = ''
 	if config['--test']:
