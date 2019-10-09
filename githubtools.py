@@ -64,13 +64,21 @@ def set_access_token(config):
 	return token
 
 
+def _is_iterable(obj):
+	try:
+		iterator = iter(obj)
+	except:
+		return False
+	else:
+		return True
+
 # this doesn't work well with a list for some reason
 # e.g. I can't get dc,100719 to work
 # but the single keyword "dc-ds-100719" works
 # so we're using it only to take one keyword
 
 def search_github_repos(g,keywords,config):
-	if type(keywords) is not list: keywords = [ keywords ]
+	if type(keywords) is not list: keywords = [ keywords ] # not the most pythonic but strings are iterable
 	q = '+'.join(keywords)
 	repos = g.search_repositories(query=q,sort='updated',order='desc')
 
@@ -108,7 +116,8 @@ def search_github_repos(g,keywords,config):
 # creates forks for repos given
 
 def fork_repos(g,repos,config):
-	if type(repos) is not list: repos = [repos]
+# make sure repos is iterable
+	if not _is_iterable(repos): repos = [repos]
 	me = g.get_user()
 	forked_repos = []
 	msg_prefix = ''
@@ -135,7 +144,8 @@ def fork_repos(g,repos,config):
 
 # working_dir better not already be a git repository!!
 def clone_repos(repos,config):
-	if type(repos) is not list: repos = [ repos ]
+# make sure repos is iterable
+	if not _is_iterable(repos): repos = [repos]
 	cloned_repos = []
 	working_dir = config['--dir']
 	msg_prefix = ''
@@ -159,13 +169,18 @@ def clone_repos(repos,config):
 			print(f"Done.")
 	return cloned_repos
 
+# adding upstream remote
+# maybe should be able to set name of upstream parent
 def get_github_repo_from_url(g,url,config):
 	p = giturlparse.parse(url)
 	if config['--test']:
 		print(f"Retrieving {p.owner}/{p.repo}")
 	return g.get_repo(p.owner+"/"+p.repo)
 
+
 def add_upstream_repos(g,cloned_repos,config):
+# make sure cloned_repos is iterable
+	if not is_iterable(cloned_repos): cloned_repos = [cloned_repos]
 	upstream_remotes = []
 	msg_prefix = ''
 	if config['--test']:
