@@ -134,7 +134,7 @@ def fork_repos(g,repos,config):
 def clone_repos(repos,config):
 	if type(repos) is not list: repos = [ repos ]
 	cloned_repos = []
-    working_dir = config['--dir']
+	working_dir = config['--dir']
 	msg_prefix = ''
 	if config['--test']:
 		msg_prefix = "TEST: "
