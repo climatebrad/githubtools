@@ -17,6 +17,12 @@ Options:
 """
 from docopt import docopt
 
+# class Githubtool:
+# 	def __init__(self,config):
+#		""" create a new githubtool """
+#		access_token=set_access_token(arguments)
+#		self.g = Github(access_token)
+
 if __name__ == '__main__':
 	config = docopt(__doc__)
 	if config['--test'] or config['--verbose']:
@@ -54,7 +60,7 @@ def set_access_token(config):
 	if path.exists(token_file):
 		token = load_access_token(token_file)
 
-	# if -t flag set, takes precedence.
+	# if -t flag set, takes precedence. Probably should validate.
 
 	if config['-t']:
 		token = config['-t']
@@ -104,14 +110,24 @@ def search_github_repos(g,keywords,config):
 
 # Fork them
 
-# looks like what we're interested in is AuthenticatedUser
-# https://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html#github.AuthenticatedUser.AuthenticatedUser.create_fork
+
 # AuthenticatedUser.create_fork(repo)
 # Calls:	POST /repos/:owner/:repo/forks
 # Parameters:	repo – github.Repository.Repository
 # Return type:	github.Repository.Repository
 
-# get the AuthenticatedUser
+def my_forked_repos(g,me):
+	my_forked_repos = []
+	my_repos = me.get_repos()
+	for repo in my_repos:
+		if repo.fork:
+			my_forked_repos.append(repo)
+
+def fork_exists(g,me,repo,config):
+	# get my repositories
+	# for the ones which are forks
+	# get the owner/repo info
+	return False
 
 # creates forks for repos given
 
@@ -120,13 +136,11 @@ def fork_repos(g,repos,config):
 	if not _is_iterable(repos): repos = [repos]
 	me = g.get_user()
 	forked_repos = []
-	msg_prefix = ''
-	if config['--test']:
-		msg_prefix = "TEST: "
+	msg_prefix = 'TEST: ' if config['--test'] else ''
 	for repo in repos:
 		if config['--test'] or config['--verbose']:
 			print(f"{msg_prefix}Forking {repo.clone_url}...")
-		if not config['--test']:
+		if not config['--test']: # it would be good to check if fork exists before doing this
 			forked_repo = me.create_fork(repo)
 			forked_repos.append(forked_repo)
 		if config['--verbose']:
@@ -148,9 +162,7 @@ def clone_repos(repos,config):
 	if not _is_iterable(repos): repos = [repos]
 	cloned_repos = []
 	working_dir = config['--dir']
-	msg_prefix = ''
-	if config['--test']:
-		msg_prefix = "TEST: "
+	msg_prefix = 'TEST: ' if config['--test'] else ''
 	for repo in repos:
 		if config['--test'] or config['--verbose']:
 			print(f"{msg_prefix}Cloning {repo.git_url} into {working_dir}/{repo.name} ...")
@@ -159,10 +171,13 @@ def clone_repos(repos,config):
 		if pygit2.discover_repository(working_dir+"/"+repo.name):
 			if config['--test'] or config['--verbose']:
 				print(f"Repository {repo.name} already exists in {working_dir}")
-			# note: should check if the repo that exists is actually a clone
+			# note: should check if the local repo that exists is actually a clone of the repo, not just same name
 			cloned_repo = pygit2.Repository(pygit2.discover_repository(working_dir+"/"+repo.name))
+			if cloned_repo.remotes["origin"].url == repo.git_url: # repair - this fails if remote not set
+				cloned_repo.remotes.set_url("origin",repo.clone_url)
 		elif not config['--test']:
 			cloned_repo = pygit2.clone_repository(repo.git_url,working_dir+"/"+repo.name)
+			cloned_repo.remotes.set_url("origin",repo.clone_url) # have to fix the remote url
 		if not config['--test']:
 			cloned_repos.append(cloned_repo)
 		if config['--verbose']:
@@ -182,9 +197,7 @@ def add_upstream_repos(g,cloned_repos,config):
 # make sure cloned_repos is iterable
 	if not _is_iterable(cloned_repos): cloned_repos = [cloned_repos]
 	upstream_remotes = []
-	msg_prefix = ''
-	if config['--test']:
-		msg_prefix = "TEST: "
+	msg_prefix = 'TEST: ' if config['--test'] else ''
 	for cloned_repo in cloned_repos:
 		if config['--test'] or config['--verbose']:
 			print(f"Getting {cloned_repo.remotes['origin'].url}...")
@@ -199,6 +212,8 @@ def add_upstream_repos(g,cloned_repos,config):
 		if not config['--test']:
 			try:
 				remote_upstream = cloned_repo.remotes['upstream']
+				if config['--test'] or config['--verbose']:
+					print(f"Upstream remote {remote_upstream.url} already exists.")
 				upstream_remotes.append(remote_upstream)
 			except:
 				upstream_remotes.append(cloned_repo.remotes.create("upstream",forked_repo.parent.git_url))
