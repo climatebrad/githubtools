@@ -50,6 +50,8 @@ def fix_remote_origin(dirName):
 				print(f"Done.")
 
 
-for dirName, subdirList, fileList in os.walk(rootDir): # traverse root
-	if pygit2.discover_repository(dirName): # if dirName is git
-		fix_remote_origin(dirName)
+for root, dirs, files in os.walk(rootDir): # traverse root
+	if TEST: print(f"Traversing {root}...")
+	if pygit2.discover_repository(root): # if dirName is git
+		fix_remote_origin(root)
+		dirs[:] = [] # exclude subdirs of git
