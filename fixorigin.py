@@ -34,24 +34,23 @@ from githubtools import *
 ACCESS_TOKEN = set_access_token(config)
 g=Github(ACCESS_TOKEN)
 
-def fix_remote_origin(dirName):
-	if pygit2.discover_repository(dirName): # if dirName is git
-		repo = pygit2.Repository(pygit2.discover_repository(dirName))
-		if repo.remotes['origin']: # if remote origin exists:
+def fix_remote_origin(repo):
+	if repo.remotes['origin']: # if remote origin exists:
+		if TEST or VERBOSE:
+			print(f"Fetching {repo.remotes['origin'].url}...")
+		origin_repo = get_github_repo_from_url(g,repo.remotes['origin'].url,config) # repo = g.get_repo(remote origin)
+		if repo.remotes['origin'].url != origin_repo.clone_url:
 			if TEST or VERBOSE:
-				print(f"Fetching {repo.remotes['origin'].url}...")
-			origin_repo = get_github_repo_from_url(g,repo.remotes['origin'].url,config) # repo = g.get_repo(remote origin)
-			if repo.remotes['origin'].url != origin_repo.clone_url:
-				if TEST or VERBOSE:
-					print(f"Fixing origin to {origin_repo.clone_url}...")
-				if not TEST:
-					repo.remotes.set_url('origin',origin_repo.clone_url)
-			if TEST or VERBOSE:
-				print(f"Done.")
+				print(f"Fixing origin to {origin_repo.clone_url}...")
+			if not TEST:
+				repo.remotes.set_url('origin',origin_repo.clone_url)
+		if TEST or VERBOSE:
+			print(f"Done.")
 
 
 for root, dirs, files in os.walk(rootDir): # traverse root
 	if TEST: print(f"Traversing {root}...")
 	if pygit2.discover_repository(root): # if dirName is git
-		fix_remote_origin(root)
+	    repo = pygit2.Repository(pygit2.discover_repository(root))
+		fix_remote_origin(repo)
 		dirs[:] = [] # exclude subdirs of git

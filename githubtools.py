@@ -173,7 +173,7 @@ def clone_repos(repos,config):
 				print(f"Repository {repo.name} already exists in {working_dir}")
 			# note: should check if the local repo that exists is actually a clone of the repo, not just same name
 			cloned_repo = pygit2.Repository(pygit2.discover_repository(working_dir+"/"+repo.name))
-			if cloned_repo.remotes["origin"].url == repo.git_url: # repair - this fails if remote not set
+			if cloned_repo.remotes["origin"].url != repo.clone_url: # repair - this fails if remote not set
 				cloned_repo.remotes.set_url("origin",repo.clone_url)
 		elif not config['--test']:
 			cloned_repo = pygit2.clone_repository(repo.git_url,working_dir+"/"+repo.name)
