@@ -35,7 +35,12 @@ ACCESS_TOKEN = set_access_token(config)
 g=Github(ACCESS_TOKEN)
 
 def fix_remote_origin(repo):
-	if repo.remotes['origin']: # if remote origin exists:
+	try:
+		repo.remotes['origin']: # check if remote origin exists
+	except:
+		if TEST or VERBOSE:
+			print(f"{repo.path} does not have an origin remote.")
+	else:
 		if TEST or VERBOSE:
 			print(f"Fetching {repo.remotes['origin'].url}...")
 		origin_repo = get_github_repo_from_url(g,repo.remotes['origin'].url,config) # repo = g.get_repo(remote origin)
