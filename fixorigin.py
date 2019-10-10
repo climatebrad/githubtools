@@ -38,19 +38,19 @@ def fix_remote_origin(repo):
 	try:
 		repo.remotes['origin']: # check if remote origin exists
 	except:
-		if TEST or VERBOSE:
-			print(f"{repo.path} does not have an origin remote.")
+		if TEST or VERBOSE: print(f"{repo.path} does not have an origin remote.")
 	else:
-		if TEST or VERBOSE:
-			print(f"Fetching {repo.remotes['origin'].url}...")
-		origin_repo = get_github_repo_from_url(g,repo.remotes['origin'].url,config) # repo = g.get_repo(remote origin)
-		if repo.remotes['origin'].url != origin_repo.clone_url:
-			if TEST or VERBOSE:
-				print(f"Fixing origin to {origin_repo.clone_url}...")
-			if not TEST:
-				repo.remotes.set_url('origin',origin_repo.clone_url)
-		if TEST or VERBOSE:
-			print(f"Done.")
+		if TEST or VERBOSE: print(f"Fetching {repo.remotes['origin'].url}...")
+		try:
+			origin_repo = get_github_repo_from_url(g,repo.remotes['origin'].url,config) # repo = g.get_repo(remote origin)
+		except:
+			if TEST or VERBOSE: print(f"Couldn't get {repo.remotes['origin'].url} from Github.")
+		else:
+			if repo.remotes['origin'].url != origin_repo.clone_url:
+				if TEST or VERBOSE: print(f"Fixing origin to {origin_repo.clone_url}...")
+				if not TEST:
+					repo.remotes.set_url('origin',origin_repo.clone_url)
+				if TEST or VERBOSE: print(f"Done.")
 
 
 for root, dirs, files in os.walk(rootDir): # traverse root
