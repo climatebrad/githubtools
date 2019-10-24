@@ -163,7 +163,7 @@ def fork_repos(github_user,repos,config):
     for repo in repos:
         if config['--test'] or config['--verbose']:
             print(f"{msg_prefix}Forking {repo.clone_url}...")
-        forked_repo = find_fork(github_user,repo,config)
+        forked_repo = find_fork(github_user, repo, config)
         if forked_repo:
             if config['--test'] or config['--verbose']:
                 print(f"{repo.clone_url} already forked.")
@@ -177,6 +177,10 @@ def fork_repos(github_user,repos,config):
                 print(f"Done.")
     return forked_repos
 
+def dir_is_repo(dir):
+    """Check if dir is a git repository."""
+    return pygit2.discover_repository(dir)
+
 # clone them locally
 # https://stackoverflow.com/questions/49458329/create-clone-and-push-to-github-repo-using-pygithub-and-pygit2
 
@@ -185,6 +189,10 @@ def fork_repos(github_user,repos,config):
 # creates clones for given remote repos; returns clones that already exist
 
 # working_dir better not already be a git repository!!
+
+# Ideally we would have the ability to check if clone already exists somewhere on the system,
+#  not just in the working directory.
+
 def clone_repos(repos,config):
     """For list of repos, clone into local directory set by config['--dir']"""
 # make sure repos is iterable
@@ -193,21 +201,22 @@ def clone_repos(repos,config):
     working_dir = config['--dir']
     msg_prefix = 'TEST: ' if config['--test'] else ''
     for repo in repos:
+        clone_path = working_dir + "/" + repo.name
         if config['--test'] or config['--verbose']:
-            print(f"{msg_prefix}Cloning {repo.git_url} into {working_dir}/{repo.name} ...")
-        if pygit2.discover_repository(working_dir):
+            print(f"{msg_prefix}Cloning {repo.git_url} into {clone_path} ...")
+        if dir_is_repo(working_dir):
             sys.exit(f"A repository already exists in {working_dir}")
 
-        if pygit2.discover_repository(working_dir+"/"+repo.name):
+        if dir_is_repo(clone_path):
             if config['--test'] or config['--verbose']:
                 print(f"Repository {repo.name} already exists in {working_dir}")
-            # if the repo's origin remote is set to the git_url, fix it to the clone_url
-            cloned_repo = pygit2.Repository(pygit2.discover_repository(working_dir+"/"+repo.name))
-            if cloned_repo.remotes["origin"].url == repo.git_url:
-                cloned_repo.remotes.set_url("origin",repo.clone_url)
+            cloned_repo = pygit2.Repository(pygit2.discover_repository(clone_path))
+            # if the repo's origin remote doesn't exist or is set to the git_url, fix it to the clone_url
+            if ("origin" not in cloned_repo.remotes) or (cloned_repo.remotes["origin"].url == repo.git_url):
+                cloned_repo.remotes.set_url("origin", repo.clone_url)
         elif not config['--test']:
-            cloned_repo = pygit2.clone_repository(repo.git_url,working_dir+"/"+repo.name)
-            cloned_repo.remotes.set_url("origin",repo.clone_url) # have to fix the remote url
+            cloned_repo = pygit2.clone_repository(repo.git_url, clone_path)
+            cloned_repo.remotes.set_url("origin", repo.clone_url) # have to fix the remote url
 
         if not config['--test']:
             cloned_repos.append(cloned_repo)
@@ -232,7 +241,7 @@ def add_upstream_repos(g,cloned_repos,config):
     for cloned_repo in cloned_repos:
         if config['--test'] or config['--verbose']:
             print(f"Getting {cloned_repo.remotes['origin'].url}...")
-        forked_repo = get_github_repo_from_url(g,cloned_repo.remotes["origin"].url,config)
+        forked_repo = get_github_repo_from_url(g,cloned_repo.remotes["origin"].url, config)
         if not forked_repo.parent: # skip
             if config['--test'] or config['--verbose']:
                 print(f"Repo {forked_repo.url} does not have an upstream parent.")
@@ -247,7 +256,7 @@ def add_upstream_repos(g,cloned_repos,config):
                     print(f"Upstream remote {remote_upstream.url} already exists.")
                 upstream_remotes.append(remote_upstream)
             except:
-                upstream_remotes.append(cloned_repo.remotes.create("upstream",forked_repo.parent.git_url))
+                upstream_remotes.append(cloned_repo.remotes.create("upstream", forked_repo.parent.git_url))
         if config['--verbose']:
             print(f"Done.")
     return upstream_remotes
