@@ -21,7 +21,6 @@ Options:
   --upstream            add remote upstream to cloned repos, if they exist
   --old                 add already forked repositories to cloning list
   --dir=<dir>           specify parent <dir> in which to clone repositories [default: ./]
-                        dir must not be a repository
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 """
