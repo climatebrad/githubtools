@@ -35,6 +35,7 @@ ACCESS_TOKEN = set_access_token(config)
 g=Github(ACCESS_TOKEN)
 
 def fix_remote_origin(repo):
+"""set origin of repo to the Github repo's clone_url"""
 	try:
 		repo.remotes['origin']: # check if remote origin exists
 	except:
