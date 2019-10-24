@@ -13,22 +13,22 @@ githubtools.py (-h|--help)
 
 Using the module:
 ~~~~
-from githubtools install *
+import githubtools as ght
 
 arguments = {
   '-verbose':True,
   '-n':30
 }
 
-ACCESS_TOKEN = set_access_token(arguments) # searches for .oAuth file by default (arguments['-f'])
+ACCESS_TOKEN = ght.set_access_token(arguments) # searches for .oAuth file by default (arguments['-f'])
 g=Github(ACCESS_TOKEN)
 
 keyword = "dc-ds-100719"
-repos = search_github_repos(g,keyword,arguments) # returns -n results
+repos = ght.search_github_repos(g,keyword,arguments) # returns -n results
 
-forked_repos = fork_repos(g,repos,arguments)
-cloned_repos = clone_repos(forked_repos,arguments) #  arguments['--dir'] is ./ by default
-upstream_remotes = add_upstream_repos(g,cloned_repos,arguments)
+forked_repos = ght.fork_repos(g,repos,arguments)
+cloned_repos = ght.clone_repos(forked_repos,arguments) #  arguments['--dir'] is ./ by default
+upstream_remotes = ght.add_upstream_repos(g,cloned_repos,arguments)
 ~~~~
 
 
