@@ -18,15 +18,15 @@ Options:
 from docopt import docopt
 
 # class Githubtool:
-# 	def __init__(self,config):
-#		""" create a new githubtool """
-#		access_token=set_access_token(arguments)
-#		self.g = Github(access_token)
+#     def __init__(self,config):
+#        """ create a new githubtool """
+#        access_token=set_access_token(arguments)
+#        self.g = Github(access_token)
 
 if __name__ == '__main__':
-	config = docopt(__doc__)
-	if config['--test'] or config['--verbose']:
-		print(config)
+    config = docopt(__doc__)
+    if config['--test'] or config['--verbose']:
+        print(config)
 
 import sys
 # get a list of the github repositories we need to fork
@@ -49,105 +49,133 @@ import os.path
 from os import path
 
 def load_access_token(fname):
-	f = open(fname,"r")
-	token = f.read()
-	return token.rstrip()
+    """given a file name / path fname, return the string stored in it.
+    does not check if it's actually an authentic auth token"""
+    f = open(fname,"r")
+    token = f.read()
+    return token.rstrip()
 
 def set_access_token(config):
-	token = None
-	token_file = config['-f']
+    """first looks to set auth token passed directly from config['-t']
+    then looks for auth token stored in a file from config['-t']"""
 
-	if path.exists(token_file):
-		token = load_access_token(token_file)
+    token = None
 
-	# if -t flag set, takes precedence. Probably should validate.
+# if -t flag set, takes precedence. Probably should validate.
 
-	if config['-t']:
-		token = config['-t']
+    if config['-t']:
+        token = config['-t']
+    else:
+        token_file = config['-f']
+        if path.exists(token_file):
+            token = load_access_token(token_file)
 
-	if not token:
-		sys.exit([f"No {config['-f']} file found or -t=ACCESS_TOKEN specified."])
-	return token
+    if not token:
+        sys.exit([f"No {config['-f']} file found or -t=ACCESS_TOKEN specified."])
+    return token
 
 
 def _is_iterable(obj):
-	try:
-		iterator = iter(obj)
-	except:
-		return False
-	else:
-		return True
+    """private function to check whether obj is iterable"""
+    try:
+        iterator = iter(obj)
+    except:
+        return False
+    else:
+        return True
 
-# this doesn't work well with a list for some reason
-# e.g. I can't get dc,100719 to work
-# but the single keyword "dc-ds-100719" works
-# so we're using it only to take one keyword
+
 
 def search_github_repos(g,keywords,config):
-	if type(keywords) is not list: keywords = [ keywords ] # not the most pythonic but strings are iterable
-	q = '+'.join(keywords)
-	repos = g.search_repositories(query=q,sort='updated',order='desc')
+    """
+    given keywords (either list or single string) and config hash
+    this doesn't work well with a list for some reason
+    e.g. I can't get dc,100719 to work
+    but the single keyword "dc-ds-100719" works
+    so we're using it only to take one keyword"""
 
-	if config['--test'] or config['--verbose']:
-		print(f'Found {repos.totalCount} repo(s)')
-	if config['-n']: # I should be validating this argument
-		n = int(config['-n'])
-		if n < repos.totalCount:
-			repos = list(repos[0:n-1])
-			if config['--test'] or config['--verbose']:
-				print(f'Limiting to first {n} repos.')
+    if type(keywords) is not list: keywords = [ keywords ] # not the most pythonic but strings are iterable
+    q = '+'.join(keywords)
+    repos = g.search_repositories(query=q, sort='updated', order='desc')
 
-	if config['--verbose']:
-		for repo in repos:
-			print(repo.clone_url)
+    if config['--test'] or config['--verbose']:
+        print(f'Found {repos.totalCount} repo(s)')
+    if config['-n']: # I should be validating this argument
+        n = int(config['-n'])
+        if n < repos.totalCount:
+            repos = list(repos[0:n-1])
+            if config['--test'] or config['--verbose']:
+                print(f'Limiting to first {n} repos.')
 
-	if config['--test']:
-		test_repo = repos[0]
-		print("FIRST FOUND: "+test_repo.clone_url)
+    if config['--verbose']:
+        for repo in repos:
+            print(repo.clone_url)
 
-	return repos
+    if config['--test']:
+        test_repo = repos[0]
+        print("FIRST FOUND: " + test_repo.clone_url)
+
+    return repos
 
 
 # Fork them
 
 
+
+def my_forked_repos(g):
+    """Return list of forked repos for user associated with g"""
+    me = g.get_user()
+    my_forked_repos = []
+    my_repos = me.get_repos()
+    for repo in my_repos:
+        if repo.fork:
+            my_forked_repos.append(repo)
+    return my_forked_repos
+
+def find_fork(github_user,repo,config):
+    """For a given repo, check that github_user has a repo of the same name that is its fork.
+If fork exists, return the fork. Else return false.
+This is a moderately check. The correct way is to load the user's repos and check through the parents."""
+
+    me = github_user.get_user()
+    try:
+        my_repo = github_user.get_repo(f"{me.login}/{repo.name}")
+    except:
+        return False
+    else:
+        if (my_repo.fork) and (my_repo.parent.full_name == repo.full_name):
+            return my_repo
+        else:
+            return False
+
 # AuthenticatedUser.create_fork(repo)
-# Calls:	POST /repos/:owner/:repo/forks
-# Parameters:	repo – github.Repository.Repository
-# Return type:	github.Repository.Repository
+# Calls:    POST /repos/:owner/:repo/forks
+# Parameters:    repo – github.Repository.Repository
+# Return type:    github.Repository.Repository
 
-def my_forked_repos(g,me):
-	my_forked_repos = []
-	my_repos = me.get_repos()
-	for repo in my_repos:
-		if repo.fork:
-			my_forked_repos.append(repo)
-
-def fork_exists(g,me,repo,config):
-	# get my repositories
-	# for the ones which are forks
-	# get the owner/repo info
-	return False
-
-# creates forks for repos given
-
-def fork_repos(g,repos,config):
+def fork_repos(github_user,repos,config):
+    """For list of repos, fork into github_user's account"""
 # make sure repos is iterable
-	if not _is_iterable(repos): repos = [repos]
-	me = g.get_user()
-	forked_repos = []
-	msg_prefix = 'TEST: ' if config['--test'] else ''
-	for repo in repos:
-		if config['--test'] or config['--verbose']:
-			print(f"{msg_prefix}Forking {repo.clone_url}...")
-		if not config['--test']: # it would be good to check if fork exists before doing this
-			forked_repo = me.create_fork(repo)
-			forked_repos.append(forked_repo)
-		if config['--verbose']:
-			print(f"Done.")
-	return forked_repos
-
-# need to add a check that forked repo doesn't already exist (?)
+    if not _is_iterable(repos): repos = [repos]
+    me = github_user.get_user()
+    forked_repos = []
+    msg_prefix = 'TEST: ' if config['--test'] else ''
+    for repo in repos:
+        if config['--test'] or config['--verbose']:
+            print(f"{msg_prefix}Forking {repo.clone_url}...")
+        forked_repo = find_fork(github_user,repo,config)
+        if forked_repo:
+            if config['--test'] or config['--verbose']:
+                print(f"{repo.clone_url} already forked.")
+            if config['--old']:
+                forked_repos.append(forked_repo)
+        else:
+            if not config['--test']:
+                forked_repo = me.create_fork(repo)
+                forked_repos.append(forked_repo)
+            if config['--verbose']:
+                print(f"Done.")
+    return forked_repos
 
 # clone them locally
 # https://stackoverflow.com/questions/49458329/create-clone-and-push-to-github-repo-using-pygithub-and-pygit2
@@ -158,67 +186,68 @@ def fork_repos(g,repos,config):
 
 # working_dir better not already be a git repository!!
 def clone_repos(repos,config):
+    """For list of repos, clone into local directory set by config['--dir']"""
 # make sure repos is iterable
-	if not _is_iterable(repos): repos = [repos]
-	cloned_repos = []
-	working_dir = config['--dir']
-	msg_prefix = 'TEST: ' if config['--test'] else ''
-	for repo in repos:
-		if config['--test'] or config['--verbose']:
-			print(f"{msg_prefix}Cloning {repo.git_url} into {working_dir}/{repo.name} ...")
-		if pygit2.discover_repository(working_dir):
-			sys.exit(f"A repository already exists in {working_dir}")
+    if not _is_iterable(repos): repos = [repos]
+    cloned_repos = []
+    working_dir = config['--dir']
+    msg_prefix = 'TEST: ' if config['--test'] else ''
+    for repo in repos:
+        if config['--test'] or config['--verbose']:
+            print(f"{msg_prefix}Cloning {repo.git_url} into {working_dir}/{repo.name} ...")
+        if pygit2.discover_repository(working_dir):
+            sys.exit(f"A repository already exists in {working_dir}")
 
-		if pygit2.discover_repository(working_dir+"/"+repo.name):
-			if config['--test'] or config['--verbose']:
-				print(f"Repository {repo.name} already exists in {working_dir}")
-			# if the repo's origin remote is set to the git_url, fix it to the clone_url
-			cloned_repo = pygit2.Repository(pygit2.discover_repository(working_dir+"/"+repo.name))
-			if cloned_repo.remotes["origin"].url == repo.git_url:
-				cloned_repo.remotes.set_url("origin",repo.clone_url)
-		elif not config['--test']:
-			cloned_repo = pygit2.clone_repository(repo.git_url,working_dir+"/"+repo.name)
-			cloned_repo.remotes.set_url("origin",repo.clone_url) # have to fix the remote url
+        if pygit2.discover_repository(working_dir+"/"+repo.name):
+            if config['--test'] or config['--verbose']:
+                print(f"Repository {repo.name} already exists in {working_dir}")
+            # if the repo's origin remote is set to the git_url, fix it to the clone_url
+            cloned_repo = pygit2.Repository(pygit2.discover_repository(working_dir+"/"+repo.name))
+            if cloned_repo.remotes["origin"].url == repo.git_url:
+                cloned_repo.remotes.set_url("origin",repo.clone_url)
+        elif not config['--test']:
+            cloned_repo = pygit2.clone_repository(repo.git_url,working_dir+"/"+repo.name)
+            cloned_repo.remotes.set_url("origin",repo.clone_url) # have to fix the remote url
 
-		if not config['--test']:
-			cloned_repos.append(cloned_repo)
-		if config['--verbose']:
-			print(f"Done.")
-	return cloned_repos
+        if not config['--test']:
+            cloned_repos.append(cloned_repo)
+        if config['--verbose']:
+            print(f"Done.")
+    return cloned_repos
 
 # adding upstream remote
 # maybe should be able to set name of upstream parent
 def get_github_repo_from_url(g,url,config):
-	p = giturlparse.parse(url)
-	if config['--test']:
-		print(f"Retrieving {p.owner}/{p.repo}")
-	return g.get_repo(p.owner+"/"+p.repo)
+    p = giturlparse.parse(url)
+    if config['--test']:
+        print(f"Retrieving {p.owner}/{p.repo}")
+    return g.get_repo(p.owner+"/"+p.repo)
 
 
 def add_upstream_repos(g,cloned_repos,config):
 # make sure cloned_repos is iterable
-	if not _is_iterable(cloned_repos): cloned_repos = [cloned_repos]
-	upstream_remotes = []
-	msg_prefix = 'TEST: ' if config['--test'] else ''
-	for cloned_repo in cloned_repos:
-		if config['--test'] or config['--verbose']:
-			print(f"Getting {cloned_repo.remotes['origin'].url}...")
-		forked_repo = get_github_repo_from_url(g,cloned_repo.remotes["origin"].url,config)
-		if not forked_repo.parent: # skip
-			if config['--test'] or config['--verbose']:
-				print(f"Repo {forked_repo.url} does not have an upstream parent.")
-				continue
+    if not _is_iterable(cloned_repos): cloned_repos = [cloned_repos]
+    upstream_remotes = []
+    msg_prefix = 'TEST: ' if config['--test'] else ''
+    for cloned_repo in cloned_repos:
+        if config['--test'] or config['--verbose']:
+            print(f"Getting {cloned_repo.remotes['origin'].url}...")
+        forked_repo = get_github_repo_from_url(g,cloned_repo.remotes["origin"].url,config)
+        if not forked_repo.parent: # skip
+            if config['--test'] or config['--verbose']:
+                print(f"Repo {forked_repo.url} does not have an upstream parent.")
+                continue
 
-		if config['--test'] or config['--verbose']:
-			print(f"{msg_prefix}Adding upstream remote {forked_repo.parent.git_url}...")
-		if not config['--test']:
-			try:
-				remote_upstream = cloned_repo.remotes['upstream']
-				if config['--test'] or config['--verbose']:
-					print(f"Upstream remote {remote_upstream.url} already exists.")
-				upstream_remotes.append(remote_upstream)
-			except:
-				upstream_remotes.append(cloned_repo.remotes.create("upstream",forked_repo.parent.git_url))
-		if config['--verbose']:
-			print(f"Done.")
-	return upstream_remotes
+        if config['--test'] or config['--verbose']:
+            print(f"{msg_prefix}Adding upstream remote {forked_repo.parent.git_url}...")
+        if not config['--test']:
+            try:
+                remote_upstream = cloned_repo.remotes['upstream']
+                if config['--test'] or config['--verbose']:
+                    print(f"Upstream remote {remote_upstream.url} already exists.")
+                upstream_remotes.append(remote_upstream)
+            except:
+                upstream_remotes.append(cloned_repo.remotes.create("upstream",forked_repo.parent.git_url))
+        if config['--verbose']:
+            print(f"Done.")
+    return upstream_remotes
