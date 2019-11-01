@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-  githubtools.py [(-v|--verbose) -n <max> --test --dir=<dir>]
+  githubtools.py [(-v|--verbose) -n <max> --test  --old --dir=<dir>]
   githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
   githubtools.py (-h|--help)
 
@@ -11,7 +11,9 @@ Options:
   -v --verbose          verbose mode
   -n <max>              specify <max> limit of matching repositories
   --test                test mode (no write)
-  --dir=<dir>           specify <dir> to clone repositories [default: ./]
+  --old                 add github repo to forked list even it was previously forked
+  --dir=<dir>           specify <dir> to clone repositories [default: .]
+
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 """
@@ -206,6 +208,9 @@ def clone_repos(repos,config):
             print(f"{msg_prefix}Cloning {repo.git_url} into {clone_path} ...")
         if dir_is_repo(working_dir):
             sys.exit(f"A repository already exists in {working_dir}")
+
+# it would be good to add a check if the working dir includes the repo somewhere,
+# not just at the top level.
 
         if dir_is_repo(clone_path):
             if config['--test'] or config['--verbose']:

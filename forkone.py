@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-  forkone.py [(-v|--verbose) --test  --fork --clone --dir=<dir> --upstream] REPO
+  forkone.py [(-v|--verbose) --test  --fork --clone --old --dir=<dir> --upstream] REPO
   forkone.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] REPO
   forkone.py (-h|--help)
 
@@ -17,8 +17,9 @@ Options:
   --fork                fork matching repository
   --clone               clone matching forked repository, if it exists
   --upstream            add remote upstream to cloned repo, if it exists
+  --old                 do clone and/or upstream even if repository already forked
   --test                test mode (no write)
-  --dir=<dir>           specify <dir> to clone repository into [default: ./]
+  --dir=<dir>           specify <dir> to clone repository into [default: .]
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 """
