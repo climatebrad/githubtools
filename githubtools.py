@@ -205,7 +205,11 @@ def load_local_repos_list(config):
     """Load list of local repos (name only). Default location is git_list"""
     config['locals'] = [line.rstrip('\n') for line in open(config['--locals']
 
-def cloned_repo_exists(config, clone_path):
+def local_repo_exists(config, repo_name):
+    """Return true if repo_name is found in local repos list"""
+    if 'locals' not in config:
+        load_local_repos_list(config)
+    return repo_name in config['locals']
 
 def clone_repos(config, repos):
     """For list of repos, clone into local directory set by config['--dir']"""
@@ -223,7 +227,10 @@ def clone_repos(config, repos):
 
 # it would be good to add a check if the working dir includes the repo somewhere,
 # not just at the top level.
-
+        if local_repo_exists(repo.name):
+            if config['--test'] or config['--verbose']:
+                print(f"Repository {repo.name} already exists somewhere in {working_dir}")
+            continue
         if dir_is_repo(clone_path):
             if config['--test'] or config['--verbose']:
                 print(f"Repository {repo.name} already exists in {working_dir}")
