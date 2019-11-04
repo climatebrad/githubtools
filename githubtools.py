@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-  githubtools.py [(-v|--verbose) -n <max> --test  --old --dir=<dir>]
+  githubtools.py [(-v|--verbose) -n <max> --test  --old --locals=<list> --dir=<dir>]
   githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
   githubtools.py (-h|--help)
 
@@ -12,6 +12,7 @@ Options:
   -n <max>              specify <max> limit of matching repositories
   --test                test mode (no write)
   --old                 add github repo to forked list even it was previously forked
+  --locals=<list>       specify file name where names of local repos are listed [default: git_list]
   --dir=<dir>           specify <dir> to clone repositories [default: .]
 
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
@@ -20,10 +21,15 @@ Options:
 from docopt import docopt
 
 # class Githubtool:
-#     def __init__(self,config):
+#     def __init__(self, config):
 #        """ create a new githubtool """
 #        access_token=set_access_token(arguments)
 #        self.g = Github(access_token)
+#        self._dir = config[--dir]
+#        self.is_verbose = config[--verbose]
+#        self.is_test = config[--test]
+#        self.include_old = config[--old]
+#        self._locals_file = config[--locals]
 
 if __name__ == '__main__':
     config = docopt(__doc__)
@@ -88,7 +94,7 @@ def _is_iterable(obj):
 
 
 
-def search_github_repos(g,keywords,config):
+def search_github_repos(config, g, keywords):
     """
     given keywords (either list or single string) and config hash
     this doesn't work well with a list for some reason
@@ -134,10 +140,10 @@ def my_forked_repos(g):
             my_forked_repos.append(repo)
     return my_forked_repos
 
-def find_fork(github_user,repo,config):
+def find_fork(config, github_user, repo):
     """For a given repo, check that github_user has a repo of the same name that is its fork.
 If fork exists, return the fork. Else return false.
-This is a moderately check. The correct way is to load the user's repos and check through the parents."""
+This is a moderately accurate check. The correct way is to load all the user's repos and check through the parents."""
 
     me = github_user.get_user()
     try:
@@ -155,7 +161,7 @@ This is a moderately check. The correct way is to load the user's repos and chec
 # Parameters:    repo – github.Repository.Repository
 # Return type:    github.Repository.Repository
 
-def fork_repos(github_user,repos,config):
+def fork_repos(config, github_user, repos):
     """For list of repos, fork into github_user's account"""
 # make sure repos is iterable
     if not _is_iterable(repos): repos = [repos]
@@ -165,7 +171,7 @@ def fork_repos(github_user,repos,config):
     for repo in repos:
         if config['--test'] or config['--verbose']:
             print(f"{msg_prefix}Forking {repo.clone_url}...")
-        forked_repo = find_fork(github_user, repo, config)
+        forked_repo = find_fork(config, github_user, repo)
         if forked_repo:
             if config['--test'] or config['--verbose']:
                 print(f"{repo.clone_url} already forked.")
@@ -195,7 +201,13 @@ def dir_is_repo(dir):
 # Ideally we would have the ability to check if clone already exists somewhere on the system,
 #  not just in the working directory.
 
-def clone_repos(repos,config):
+def load_local_repos_list(config):
+    """Load list of local repos (name only). Default location is git_list"""
+    config['locals'] = [line.rstrip('\n') for line in open(config['--locals']
+
+def cloned_repo_exists(config, clone_path):
+
+def clone_repos(config, repos):
     """For list of repos, clone into local directory set by config['--dir']"""
 # make sure repos is iterable
     if not _is_iterable(repos): repos = [repos]
@@ -231,14 +243,14 @@ def clone_repos(repos,config):
 
 # adding upstream remote
 # maybe should be able to set name of upstream parent
-def get_github_repo_from_url(g,url,config):
+def get_github_repo_from_url(config, g, url):
     p = giturlparse.parse(url)
     if config['--test']:
         print(f"Retrieving {p.owner}/{p.repo}")
     return g.get_repo(p.owner+"/"+p.repo)
 
 
-def add_upstream_repos(g,cloned_repos,config):
+def add_upstream_repos(config, g, cloned_repos):
 # make sure cloned_repos is iterable
     if not _is_iterable(cloned_repos): cloned_repos = [cloned_repos]
     upstream_remotes = []
@@ -246,7 +258,7 @@ def add_upstream_repos(g,cloned_repos,config):
     for cloned_repo in cloned_repos:
         if config['--test'] or config['--verbose']:
             print(f"Getting {cloned_repo.remotes['origin'].url}...")
-        forked_repo = get_github_repo_from_url(g,cloned_repo.remotes["origin"].url, config)
+        forked_repo = get_github_repo_from_url(config, g, cloned_repo.remotes["origin"].url)
         if not forked_repo.parent: # skip
             if config['--test'] or config['--verbose']:
                 print(f"Repo {forked_repo.url} does not have an upstream parent.")

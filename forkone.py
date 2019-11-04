@@ -54,7 +54,7 @@ g=Github(ACCESS_TOKEN)
 repo = g.get_repo(REPO)
 
 if arguments['--fork']:
-	forked_repo = fork_repos(g,repo,arguments)
+	forked_repo = fork_repos(arguments, g,repo)
 
 # we need to give Github time to complete the fork. It would be good to have this be a
 # while that can check if the fork is completed and then wait longer
@@ -63,7 +63,7 @@ if arguments['--verbose']:
 time.sleep(3)
 
 if arguments['--clone']:
-	cloned_repo = clone_repos(forked_repo,arguments)
+	cloned_repo = clone_repos(arguments, forked_repo)
 
 if arguments['--upstream']:
-	upstream_remote = add_upstream_repos(g,cloned_repo,arguments)
+	upstream_remote = add_upstream_repos(arguments, g, cloned_repo)

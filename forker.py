@@ -45,19 +45,19 @@ import time
 ACCESS_TOKEN = set_access_token(arguments)
 g=Github(ACCESS_TOKEN)
 
-repos = search_github_repos(g,KEYWORD,arguments)
+repos = search_github_repos(arguments, g,KEYWORD)
 
 if arguments['--fork']:
-	forked_repos = fork_repos(g,repos,arguments)
+	forked_repos = fork_repos(arguments, g,repos)
 
 if arguments['--verbose']:
 	print("Waiting 5 seconds to give Github time to complete the forks.")
 time.sleep(5)
 
 if arguments['--clone']:
-	cloned_repos = clone_repos(forked_repos,arguments)
+	cloned_repos = clone_repos(arguments, forked_repos)
 
 # add upstream connection
 
 if arguments['--upstream']:
-	upstream_remotes = add_upstream_repos(g,cloned_repos,arguments)
+	upstream_remotes = add_upstream_repos(arguments, g, cloned_repos)
