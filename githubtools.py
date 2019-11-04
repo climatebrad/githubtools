@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Usage:
-  githubtools.py [(-v|--verbose) -n <max> --test  --old --locals=<list> --dir=<dir>]
+  githubtools.py [(-v|--verbose) -n <max> --test  --old]
+  githubtools.py [--locals=<list> --dir=<dir>]
   githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
   githubtools.py (-h|--help)
 
@@ -14,7 +15,6 @@ Options:
   --old                 add github repo to forked list even it was previously forked
   --locals=<list>       specify file name where names of local repos are listed [default: git_list]
   --dir=<dir>           specify <dir> to clone repositories [default: .]
-
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 """
@@ -203,7 +203,7 @@ def dir_is_repo(dir):
 
 def load_local_repos_list(config):
     """Load list of local repos (name only). Default location is git_list"""
-    config['locals'] = [line.rstrip('\n') for line in open(config['--locals']
+    config['locals'] = [line.rstrip('\n') for line in open(config['--locals'])]
 
 def local_repo_exists(config, repo_name):
     """Return true if repo_name is found in local repos list"""
@@ -227,9 +227,9 @@ def clone_repos(config, repos):
 
 # it would be good to add a check if the working dir includes the repo somewhere,
 # not just at the top level.
-        if local_repo_exists(repo.name):
+        if local_repo_exists(config, repo.name):
             if config['--test'] or config['--verbose']:
-                print(f"Repository {repo.name} already exists somewhere in {working_dir}")
+                print(f"Repository {repo.name} already cloned somewhere in {working_dir}")
             continue
         if dir_is_repo(clone_path):
             if config['--test'] or config['--verbose']:

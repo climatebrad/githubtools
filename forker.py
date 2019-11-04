@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Usage:
-  forker.py [(-v|--verbose) -n <max> --test  --fork --clone  --upstream  --old --dir=<dir>] KEYWORD
-  forker.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] KEYWORD
+  forker.py [(-v|--verbose) -n <max> --test  --fork --clone  --upstream --old]
+            [--locals=<list>  --dir=<dir>]
+            [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] KEYWORD
   forker.py (-h|--help)
 
 Search for Github repositories matching KEYWORD using Github oAuth specified by ACCESS_TOKEN
@@ -20,6 +21,7 @@ Options:
   --clone               clone matching forked repositories, if they exist
   --upstream            add remote upstream to cloned repos, if they exist
   --old                 add already forked repositories to cloning list
+  --locals=<list>       specify file name where names of local repos are listed [default: git_list]
   --dir=<dir>           specify parent <dir> in which to clone repositories [default: ./]
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
