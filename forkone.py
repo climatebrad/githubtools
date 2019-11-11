@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Usage:
-  forkone.py [(-v|--verbose) --test  --fork --clone --old --dir=<dir> --upstream]
+  forkone.py [(-v|--verbose) --test  --fork --clone --old --upstream]
              [--locals=<list>  --dir=<dir>]
              [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] REPO
   forkone.py (-h|--help)
@@ -56,7 +56,7 @@ g=Github(ACCESS_TOKEN)
 repo = g.get_repo(REPO)
 
 if arguments['--fork']:
-	forked_repo = fork_repos(arguments, g,repo)
+	forked_repo = fork_repos(arguments, g, repo)
 
 # we need to give Github time to complete the fork. It would be good to have this be a
 # while that can check if the fork is completed and then wait longer

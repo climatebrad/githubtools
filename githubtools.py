@@ -201,6 +201,8 @@ def dir_is_repo(dir):
 # Ideally we would have the ability to check if clone already exists somewhere on the system,
 #  not just in the working directory.
 
+# TODO: Fix this so that it's not reliant on a static list but searches down
+#       working_dir
 def load_local_repos_list(config):
     """Load list of local repos (name only). Default location is git_list"""
     config['locals'] = [line.rstrip('\n') for line in open(config['--locals'])]
