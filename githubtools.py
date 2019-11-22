@@ -52,8 +52,7 @@ import pygit2
 import giturlparse
 
 # get token
-
-import os.path
+import os
 from os import path
 
 def load_access_token(fname):
@@ -205,7 +204,13 @@ def dir_is_repo(dir):
 #       working_dir
 def load_local_repos_list(config):
     """Load list of local repos (name only). Default location is git_list"""
-    config['locals'] = [line.rstrip('\n') for line in open(config['--locals'])]
+    locals_file = open(config['--locals'], "w")
+    for root, dirs, files in os.walk(config['--dir']): # for every dir under starting directory
+        if dir_is_repo(root):
+            locals_file.write(root.split(path.sep)[-1] + "\n")
+            dirs[:] = [] # don't descend into repo
+    locals_file.close()
+    config['locals'] = [repo.rstrip('\n') for repo in open(config['--locals'])]
 
 def local_repo_exists(config, repo_name):
     """Return true if repo_name is found in local repos list"""
