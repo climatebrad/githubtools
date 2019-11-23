@@ -132,12 +132,8 @@ def search_github_repos(config, g, keywords):
 def my_forked_repos(g):
     """Return list of forked repos for user associated with g"""
     me = g.get_user()
-    my_forked_repos = []
     my_repos = me.get_repos()
-    for repo in my_repos:
-        if repo.fork:
-            my_forked_repos.append(repo)
-    return my_forked_repos
+    return [repo for repo in my_repos if repo.fork]
 
 def find_fork(config, github_user, repo):
     """For a given repo, check that github_user has a repo of the same name that is its fork.
@@ -197,11 +193,6 @@ def dir_is_repo(dir):
 
 # working_dir better not already be a git repository!!
 
-# Ideally we would have the ability to check if clone already exists somewhere on the system,
-#  not just in the working directory.
-
-# TODO: Fix this so that it's not reliant on a static list but searches down
-#       working_dir
 def load_local_repos_list(config):
     """Load list of local repos (name only). Default location is git_list"""
     locals_file = open(config['--locals'], "w")
