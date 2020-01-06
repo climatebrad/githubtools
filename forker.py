@@ -5,12 +5,12 @@
             [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE) --user=<username>] KEYWORD ...
   forker.py (-h|--help)
 
-Search for Github repositories matching KEYWORD using Github oAuth specified by ACCESS_TOKEN
+Search for Github repositories matching KEYWORDs using Github oAuth specified by ACCESS_TOKEN
 or in ACCESS_TOKEN_FILE; optionally fork to the user's Github directory, clone locally, and
 add upstream remote.
 
 Arguments:
-  KEYWORD             keyword to search Github repositories for
+  KEYWORD             keywords to search Github repositories for
 
 Options:
   -h --help             show this screen.
