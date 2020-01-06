@@ -11,7 +11,7 @@ from githubtools import Githubtool
 ght = Githubtool(clone_dir='..')
 
 keyword = "dc-ds-100719"
-repos = ght.search_github_repos(keyword) 
+repos = ght.search_github_repos(keyword)
 
 forked_repos = ght.fork_repos(repos)
 cloned_repos = ght.clone_repos(forked_repos) # clones into clone_dir
@@ -54,7 +54,7 @@ add upstream remote.
 
 ## Usage:
 ~~~~
-  forker.py [(-v|--verbose) -n <max> --test  --fork --clone --dir=<dir> --upstream] 
+  forker.py [(-v|--verbose) -n <max> --test  --fork --clone --dir=<dir> --upstream]
             [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE) --user=<username>] KEYWORD ...
   forker.py (-h|--help)
 ~~~~
@@ -105,6 +105,31 @@ REPO
   --upstream            add remote upstream to cloned repo, if it exists
   --test                test mode (no write)
   --dir=<dir>           specify <dir> to clone repository into [default: ./]
+  -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
+  -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
+~~~~
+
+# fixorigin.py
+
+Search for Github repositories in DIR using Github oAuth specified by ACCESS_TOKEN
+or in ACCESS_TOKEN_FILE; for every git found under DIR make sure remote origin set to clone_url.
+
+## Usage:
+~~~~
+  fixorigin.py [(-v|--verbose) --test (-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] DIR
+  fixorigin.py (-h|--help)
+~~~~
+
+
+### Arguments:
+DIR
+:  root directory to search for gits
+
+### Options:
+~~~~
+  -h --help             show this screen.
+  -v --verbose          verbose mode
+  --test                test mode
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 ~~~~
