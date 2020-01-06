@@ -4,14 +4,7 @@ Toolkit for manipulating local and Github repositories. Including the process of
 Built for Flatiron Data Science class after Learn.co removed their automatic forking functionality.
 
 ## Usage:
-Command-line call doesn't run any statements, just sets the config:
-~~~~
-githubtools.py [(-v|--verbose) -n <max> --test --dir=<dir>]
-githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
-githubtools.py (-h|--help)
-~~~~
 
-Using the module:
 ~~~~
 from githubtools import Githubtool
 
