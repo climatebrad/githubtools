@@ -1,27 +1,30 @@
 #!/usr/bin/env python
 """Usage:
-  githubtools.py [(-v|--verbose) -n <max> --test  --old]
-  githubtools.py [--locals=<list> --dir=<dir>]
-  githubtools.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)]
-  githubtools.py (-h|--help)
+from githubtools import Githubtool
 
-Toolkit for manipulating local and Github repositories. Most functions take a config dict argument.
+ght = Githubtool(clone_dir='..')
 
-Options:
-  -h --help             show this screen.
-  -v --verbose          verbose mode
-  -n <max>              specify <max> limit of matching repositories
-  --test                test mode (no write)
-  --old                 add github repo to forked list even it was previously forked
-  --locals=<list>       specify file name where names of local repos are listed [default: git_list]
-  --dir=<dir>           specify <dir> to clone or find local repositories [default: ..]
-  -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
-  -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
+keyword = "dc-ds-100719"
+repos = ght.search_github_repos(keyword)
+
+forked_repos = ght.fork_repos(repos)
+cloned_repos = ght.clone_repos(forked_repos) # clones into clone_dir
+upstream_remotes = ght.add_upstream_repos(cloned_repos)
+
+Initialization options:
+
+Githubtool(
+    is_verbose=False,
+    is_test=False,
+    locals_file='git_list',
+    clone_dir='..',
+    access_token_file='.oAuth',
+    access_token=None
+)
 """
 import sys
 import os
 from os import path
-
 from docopt import docopt
 
 # library to the Github API
@@ -50,7 +53,8 @@ if __name__ == '__main__':
 
 
 class Githubtool:
-    """Githubtool class"""
+    """Githubtool class
+    """
     def __init__(self,
                  is_verbose=False,
                  is_test=False,
@@ -59,7 +63,15 @@ class Githubtool:
                  access_token_file='.oAuth',
                  access_token=None,
                  ):
-        """ create a new githubtool """
+        """ create a new githubtool.
+Arguments:
+ is_verbose : if True, print information about activities
+ is_test : if True, do not make actual changes
+ locals_file : file name of list of repo names under clone_dir
+ clone_dir : path of local repositories
+ access_token_file : file with Github access token
+ access_token : Github access token
+"""
         # configs
         self.config = {}
         self.config['-t'] = access_token

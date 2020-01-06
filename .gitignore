@@ -3,3 +3,9 @@ test.py
 __pycache__
 .ipynb_checkpoints
 git_list
+build
+dist
+documentation/_build
+githubtools.egg-info
+*.pyc
+MANIFEST
