@@ -13,34 +13,29 @@ githubtools.py (-h|--help)
 
 Using the module:
 ~~~~
-import githubtools as ght
+from githubtools import Githubtool
 
-arguments = {
-  '-verbose':True,
-  '-n':30
-}
-
-ACCESS_TOKEN = ght.set_access_token(arguments) # searches for .oAuth file by default (arguments['-f'])
-g=Github(ACCESS_TOKEN)
+ght = Githubtool(clone_dir='..')
 
 keyword = "dc-ds-100719"
-repos = ght.search_github_repos(g,keyword,arguments) # returns -n results
+repos = ght.search_github_repos(keyword) 
 
-forked_repos = ght.fork_repos(g,repos,arguments)
-cloned_repos = ght.clone_repos(forked_repos,arguments) #  arguments['--dir'] is ./ by default
-upstream_remotes = ght.add_upstream_repos(g,cloned_repos,arguments)
+forked_repos = ght.fork_repos(repos)
+cloned_repos = ght.clone_repos(forked_repos) # clones into clone_dir
+upstream_remotes = ght.add_upstream_repos(cloned_repos)
 ~~~~
 
 
-### Options:
+### Initialization Options:
 ~~~~
--h --help             show this screen.
--v --verbose          verbose mode
--n <max>              specify <max> limit of matching repositories
---test                test mode (no write)
---dir=<dir>           specify <dir> to clone repositories [default: ./]
--t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
--f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
+Githubtool(
+    is_verbose=False,
+    is_test=False,
+    locals_file='git_list',
+    clone_dir='..',
+    access_token_file='.oAuth',
+    access_token=None
+)
 ~~~~
 
 ## Requires:
@@ -66,14 +61,14 @@ add upstream remote.
 
 ## Usage:
 ~~~~
-  forker.py [(-v|--verbose) -n <max> --test  --fork --clone --dir=<dir> --upstream] KEYWORD
-  forker.py [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] KEYWORD
+  forker.py [(-v|--verbose) -n <max> --test  --fork --clone --dir=<dir> --upstream] 
+            [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE) --user=<username>] KEYWORD ...
   forker.py (-h|--help)
 ~~~~
 
 ### Arguments:
-KEYWORD
-: keyword to search Github repositories for
+KEYWORD ...
+: keywords to search Github repositories for
 
 ### Options:
 ~~~~
@@ -87,6 +82,7 @@ KEYWORD
   --dir=<dir>           specify <dir> to clone repositories [default: ./]
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
+  --user=<username>     specify github user to search under
 ~~~~
 
 # forkone.py
