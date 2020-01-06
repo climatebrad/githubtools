@@ -21,51 +21,50 @@ Options:
   --upstream            add remote upstream to cloned repo, if it exists
   --old                 do clone and/or upstream even if repository already forked
   --locals=<list>       specify file name where names of local repos are listed [default: git_list]
-  --dir=<dir>           specify <dir> to clone repository into [default: .]
+  --dir=<dir>           specify <dir> to clone repository into [default: ..]
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 """
+import time
 from docopt import docopt
+from githubtools import Githubtool
 
 if __name__ == '__main__':
-	arguments = docopt(__doc__)
-	REPO = arguments['REPO']
-	TEST = arguments['--test']
-	VERBOSE = arguments['--verbose']
-	if TEST or VERBOSE:
-		print(arguments)
+    arguments = docopt(__doc__)
+    REPO = arguments['REPO']
+    TEST = arguments['--test']
+    VERBOSE = arguments['--verbose']
+    if TEST or VERBOSE:
+        print(arguments)
 
-import sys
-import time
+
 # get a list of the github repositories we need to fork
 # https://python.gotrained.com/search-github-api/
 # https://pygithub.readthedocs.io/en/latest/introduction.html
 # https://developer.github.com/v3/search/#search-repositories
 
-# library to the Github API
-from github import Github
-
-from githubtools import *
-
-
 # Here's our top-level code:
 
-ACCESS_TOKEN = set_access_token(arguments)
-g=Github(ACCESS_TOKEN)
+githubtool = Githubtool(VERBOSE,
+                        TEST,
+                        arguments['--locals'],
+                        arguments['--dir'],
+                        arguments['-f'],
+                        arguments['-t'])
 
-repo = g.get_repo(REPO)
+repo = githubtool.g.get_repo(REPO)
 
 if arguments['--fork']:
-	forked_repo = fork_repos(arguments, g, repo)
+    forked_repo = githubtool.fork_repos(repo, arguments['--old'])
 
 # we need to give Github time to complete the fork. It would be good to have this be a
 # while that can check if the fork is completed and then wait longer
-if arguments['--verbose']:
-	print("Waiting 3 seconds to give Github time to complete the fork.")
+if VERBOSE:
+    print("Waiting 3 seconds to give Github time to complete the fork.")
 time.sleep(3)
 
 if arguments['--clone']:
-	cloned_repo = clone_repos(arguments, forked_repo)
+    cloned_repo = githubtool.clone_repos(forked_repo)
 
 if arguments['--upstream']:
-	upstream_remote = add_upstream_repos(arguments, g, cloned_repo)
+    upstream_remote = githubtool.add_upstream_repos(cloned_repo)

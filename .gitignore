@@ -1,3 +1,5 @@
 test.py
 .oAuth*
 __pycache__
+.ipynb_checkpoints
+git_list

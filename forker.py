@@ -2,7 +2,7 @@
 """Usage:
   forker.py [(-v|--verbose) -n <max> --test  --fork --clone  --upstream --old]
             [--locals=<list>  --dir=<dir>]
-            [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE)] KEYWORD
+            [(-t ACCESS_TOKEN|-f ACCESS_TOKEN_FILE) --user=<username>] KEYWORD ...
   forker.py (-h|--help)
 
 Search for Github repositories matching KEYWORD using Github oAuth specified by ACCESS_TOKEN
@@ -22,44 +22,51 @@ Options:
   --upstream            add remote upstream to cloned repos, if they exist
   --old                 add already forked repositories to cloning list
   --locals=<list>       specify file name where names of local repos are listed [default: git_list]
-  --dir=<dir>           specify parent <dir> in which to clone repositories [default: ./]
+  --dir=<dir>           specify parent <dir> in which to clone repositories [default: .]
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
+  --user=<username>     specify user for search (optional)
 """
+import time
 from docopt import docopt
 
+from githubtools import Githubtool
+
+
+
 if __name__ == '__main__':
-	arguments = docopt(__doc__)
-	KEYWORD = arguments['KEYWORD']
-	TEST = arguments['--test']
-	VERBOSE = arguments['--verbose']
-	if TEST or VERBOSE:
-		print(arguments)
+    arguments = docopt(__doc__)
+    KEYWORD = arguments['KEYWORD']
+    TEST = arguments['--test']
+    VERBOSE = arguments['--verbose']
+    USER = arguments['--user']
+    MAXNUM = arguments.get('-n', None)
+    if TEST or VERBOSE:
+        print(arguments)
 
-from githubtools import *
 
-# library to the Github API
-from github import Github
-
-import time
 # Here's our top-level code:
 
-ACCESS_TOKEN = set_access_token(arguments)
-g=Github(ACCESS_TOKEN)
+githubtool = Githubtool(VERBOSE,
+                        TEST,
+                        arguments['--locals'],
+                        arguments['--dir'],
+                        arguments['-f'],
+                        arguments['-t'])
 
-repos = search_github_repos(arguments, g,KEYWORD)
+repos = githubtool.search_github_repos(KEYWORD, USER, MAXNUM)
 
 if arguments['--fork']:
-	forked_repos = fork_repos(arguments, g,repos)
+    forked_repos = githubtool.fork_repos(repos, arguments['--old'])
 
-if arguments['--verbose']:
-	print("Waiting 5 seconds to give Github time to complete the forks.")
+if VERBOSE:
+    print("Waiting 5 seconds to give Github time to complete the forks.")
 time.sleep(5)
 
 if arguments['--clone']:
-	cloned_repos = clone_repos(arguments, forked_repos)
+    cloned_repos = githubtool.clone_repos(forked_repos)
 
 # add upstream connection
 
 if arguments['--upstream']:
-	upstream_remotes = add_upstream_repos(arguments, g, cloned_repos)
+    upstream_remotes = githubtool.add_upstream_repos(cloned_repos)
