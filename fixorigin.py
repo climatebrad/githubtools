@@ -26,37 +26,13 @@ if __name__ == '__main__':
 	if TEST or VERBOSE:
 		print(config)
 
-import os
-import pygit2
-from github import Github
-from githubtools import *
+from githubtools import Githubtool
 
-ACCESS_TOKEN = set_access_token(config)
-g=Github(ACCESS_TOKEN)
+ght = Githubtool(VERBOSE,
+                 TEST,
+                 clone_dir=rootDir,
+                 access_token_file=arguments['-f'],
+                 access_token=arguments['-t'])
 
-def fix_remote_origin(repo):
-"""set origin of repo to the Github repo's clone_url"""
-	try:
-		repo.remotes['origin']: # check if remote origin exists
-	except:
-		if TEST or VERBOSE: print(f"{repo.path} does not have an origin remote.")
-	else:
-		if TEST or VERBOSE: print(f"Fetching {repo.remotes['origin'].url}...")
-		try:
-			origin_repo = get_github_repo_from_url(g,repo.remotes['origin'].url,config) # repo = g.get_repo(remote origin)
-		except:
-			if TEST or VERBOSE: print(f"Couldn't get {repo.remotes['origin'].url} from Github.")
-		else:
-			if repo.remotes['origin'].url != origin_repo.clone_url:
-				if TEST or VERBOSE: print(f"Fixing origin to {origin_repo.clone_url}...")
-				if not TEST:
-					repo.remotes.set_url('origin',origin_repo.clone_url)
-				if TEST or VERBOSE: print(f"Done.")
-
-
-for root, dirs, files in os.walk(rootDir): # traverse root
-	if TEST: print(f"Traversing {root}...")
-	if pygit2.discover_repository(root): # if dirName is git
-	    repo = pygit2.Repository(pygit2.discover_repository(root))
-		fix_remote_origin(repo)
-		dirs[:] = [] # exclude subdirs of git
+for repo in ght.local_repos:
+    ght.set_origin(repo)

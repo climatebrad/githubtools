@@ -14,7 +14,7 @@ Options:
   --test                test mode (no write)
   --old                 add github repo to forked list even it was previously forked
   --locals=<list>       specify file name where names of local repos are listed [default: git_list]
-  --dir=<dir>           specify <dir> to clone repositories [default: ..]
+  --dir=<dir>           specify <dir> to clone or find local repositories [default: ..]
   -t ACCESS_TOKEN       specify ACCESS_TOKEN directly, takes precedence over ACCESS_TOKEN_FILE
   -f ACCESS_TOKEN_FILE  specify file in working directory with ACCESS_TOKEN [default: .oAuth]
 """
@@ -75,6 +75,9 @@ class Githubtool:
         self.g = Github(_access_token)
 
         self.local_repos_list = []
+        self._load_local_repos_list()
+        self.local_repos = []
+        self._load_local_repos()
         self.repos = []
         self.forked_repos = []
         self.cloned_repos = []
@@ -149,10 +152,7 @@ class Githubtool:
         self.repos = repos
         return repos
 
-
     # Fork them
-
-
 
     def my_forked_repos(self):
         """Return list of forked repos for user associated with g"""
@@ -221,6 +221,14 @@ class Githubtool:
 
     # working_dir better not already be a git repository!!
 
+    def _load_local_repos(self):
+        """set self.local_repos from traverse of self.clone_dir"""
+        self.local_repos = []
+        for root, dirs, files in os.walk(self.clone_dir): # for every dir under starting directory
+            if self.dir_is_repo(root):
+                self.local_repos.append(self.local_repo_from_repo_path(root))
+                dirs[:] = [] # don't descend into repo
+
     def _load_local_repos_list(self):
         """Load list of local repos (name only). Default location is git_list"""
         locals_file = open(self.locals_file, "w")
@@ -229,7 +237,7 @@ class Githubtool:
                 locals_file.write(root.split(path.sep)[-1] + "\n")
                 dirs[:] = [] # don't descend into repo
         locals_file.close()
-        self.local_repos_list = [repo.rstrip('\n') for repo in open(config['--locals'])]
+        self.local_repos_list = [repo.rstrip('\n') for repo in open(self.locals_file)]
 
     def local_repo_exists(self, repo_name):
         """Return true if repo_name is found in local repos list"""
@@ -237,8 +245,30 @@ class Githubtool:
             self._load_local_repos_list()
         return repo_name in self.local_repos_list
 
-    def clone_repos(self, repos):
-        """For list of repos, clone into local directory set by config['--dir']"""
+    def set_origin(self, repo, origin_repo=None):
+        """make sure remote origin set to clone_url.
+        If origin_repo not specified, will look for it in repo.remotes['origin']"""
+        if not origin_repo:
+            try:
+                repo.remotes['origin']: # check if remote origin exists
+            except:
+                if self.is_test or self.is_verbose:
+                    print(f"{repo.path} does not have an origin remote. Specify origin_repo")
+            else:
+                if self.is_test or self.is_verbose:
+                    print(f"Fetching {repo.remotes['origin'].url}...")
+                origin_repo = self.get_github_repo_from_url(repo.remotes['origin'].url)
+        if ('origin' not in repo.remotes) or (repo.remotes['origin'].url == repo.git_url):
+            repo.remotes.set_url('origin', origin_repo.clone_url)
+
+    @staticmethod
+    def local_repo_from_repo_path(repo_path):
+        """return pygit2 repo object from a repo_path"""
+        return pygit2.Repository(pygit2.discover_repository(repo_path))
+
+    def clone_repos(self, repos, clone=True):
+        """For list of repos, clone into local directory set by config['--dir']
+        If clone=False: only set origin"""
     # make sure repos is iterable
         if not self._is_iterable(repos): repos = [repos]
         cloned_repos = []
@@ -260,14 +290,14 @@ class Githubtool:
             if self.dir_is_repo(clone_path):
                 if self.is_test or self.is_verbose:
                     print(f"Repository {repo.name} already exists in {working_dir}")
-                cloned_repo = pygit2.Repository(pygit2.discover_repository(clone_path))
+                cloned_repo = self.local_repo_from_repo_path(clone_path)
                 # if the repo's origin remote doesn't exist or is set to the git_url, fix it to the clone_url
-                if ("origin" not in cloned_repo.remotes) or (cloned_repo.remotes["origin"].url == repo.git_url):
-                    cloned_repo.remotes.set_url("origin", repo.clone_url)
+                self.set_origin(repo, cloned_repo)
             elif not self.is_test:
                 cloned_repo = pygit2.clone_repository(repo.git_url, clone_path)
-                cloned_repo.remotes.set_url("origin", repo.clone_url) # have to fix the remote url
-
+                self.set_origin(repo, cloned_repo)
+                self.local_repos_list.append(repo.name)
+                self.local_repos.append(cloned_repo)
             if not self.is_test:
                 cloned_repos.append(cloned_repo)
             if self.is_verbose:
