@@ -31,8 +31,13 @@ from githubtools import Githubtool
 ght = Githubtool(VERBOSE,
                  TEST,
                  clone_dir=rootDir,
-                 access_token_file=arguments['-f'],
-                 access_token=arguments['-t'])
+                 access_token_file=config['-f'],
+                 access_token=config['-t'])
 
 for repo in ght.local_repos:
-    ght.set_origin(repo)
+    try:
+        ght.set_origin(repo)
+    except:
+        if TEST or VERBOSE:
+            print(f"{repo.path} doesn't have an origin.")
+        

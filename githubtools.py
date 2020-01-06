@@ -250,7 +250,7 @@ class Githubtool:
         If origin_repo not specified, will look for it in repo.remotes['origin']"""
         if not origin_repo:
             try:
-                repo.remotes['origin']: # check if remote origin exists
+                repo.remotes['origin'] # check if remote origin exists
             except:
                 if self.is_test or self.is_verbose:
                     print(f"{repo.path} does not have an origin remote. Specify origin_repo")
@@ -259,7 +259,10 @@ class Githubtool:
                     print(f"Fetching {repo.remotes['origin'].url}...")
                 origin_repo = self.get_github_repo_from_url(repo.remotes['origin'].url)
         if ('origin' not in repo.remotes) or (repo.remotes['origin'].url == repo.git_url):
-            repo.remotes.set_url('origin', origin_repo.clone_url)
+            if not self.is_test:
+                repo.remotes.set_url('origin', origin_repo.clone_url)
+        elif self.is_test or self.is_verbose:
+            print(f"Origin already properly set to {repo.remotes['origin'].url}.")
 
     @staticmethod
     def local_repo_from_repo_path(repo_path):
